@@ -16,6 +16,7 @@ class control_node:
         self.u_z = 0.0
         self.u_y = 0.0
         self.vehicle_mode = "String"
+        self.vehicle_armed = False
 
     def callback(self,data):
         self.pos_y = data.data[0]
@@ -23,6 +24,7 @@ class control_node:
     
     def callback2(self,data):
         self.vehicle_mode = data.mode
+        self.vehicle_armed =data.armed
 
 
     def ros_publish(self):
@@ -70,11 +72,13 @@ if __name__ == '__main__':
 
             nodo_control.u_y = -y_control.u
             nodo_control.u_z = -z_control.u
-            #if nodo_control.vehicle_mode == 'OFFBOARD':
+            if nodo_control.vehicle_mode == 'POSCTL' and nodo_control.vehicle_armed :
+                nodo_control.u_y = 0.0
+                nodo_control.u_z = 0.0
+                nodo_control.ros_publish()
+            elif nodo_control.vehicle_mode == 'OFFBOARD' and nodo_control.vehicle_armed :
 
-            nodo_control.ros_publish()
-
-
+                 nodo_control.ros_publish()
 
     except rospy.ROSException as e:
         print(e)
