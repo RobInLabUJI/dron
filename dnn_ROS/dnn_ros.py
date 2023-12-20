@@ -5,6 +5,29 @@ import random
 import numpy as np
 import onnxruntime as ort
 import time
+import rospy
+from std_msgs.msg import Float32MultiArray
+
+class ros_node:
+	def __init__(self):
+		self.node_name = 'dnn_detector'
+		self.create_node()
+		self.pub = rospy.Publisher('detector_node',Float32MultiArray,queue_size=10)
+		self.data_x = 0.0
+		self.data_y = 0.0
+		
+	def create_node(self):
+		rospy.init_node(self.node_name, anonymous=False)
+
+	def publish_to_ros(self):
+		msg = Float32MultiArray()
+		msg.data = [self.data_x,self.data_y]
+		self.pub.publish(msg)
+
+
+
+
+
 
 # ----- Funciones de entrada de datos ---------
 
@@ -105,6 +128,10 @@ def process_output(outputs, ori_img, dw, dh, ratio):
 			cv2.rectangle(overlay,tuple(box[:2]),tuple(box[2:]),[255,71,51],-1)
 			cv2.addWeighted(overlay,0.3,image,1-0.3,0,image)
 			cv2.imshow('Drone view', image)
+			detector_node.data_x = x0 + (x1-x0)/2.0
+			detector_node.data_y = y0 + (y1-y0)/2.0
+			detector_node.publish_to_ros()
+			
 		else: cv2.imshow('Drone view',image)
 		if score < 0.4: 
 			cv2.imshow('Drone view',image)
@@ -161,6 +188,8 @@ if __name__ == '__main__':
 	#
 	# 0.1. Red neuronal
 	#
+	detector_node = ros_node()
+
 	cuda = True
 	dnn_path = '/home/juancangaritan/yolov7/best_aterrizaje2.onnx'
 	providers = ['CUDAExecutionProvider' , 'CPUExecutionProvider'] if cuda else ['CPUExecutionProvider']
