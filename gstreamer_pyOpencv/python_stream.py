@@ -5,7 +5,10 @@ from multiprocessing import process
 
 def receive():
     #cap = cv2.VideoCapture(f'rtsp://192.168.0.104:8900/live',cv2.CAP_GSTREAMER)
+    path = '/home/juancangaritan/Videos/'
     cap = cv2.VideoCapture("rtspsrc location=rtsp://192.168.0.104:8900/live latency=150 ! decodebin ! videoconvert ! video/x-raw,format=BGR ! appsink drop=1",cv2.CAP_GSTREAMER)
+    output = cv2.VideoWriter( 
+        path + "output.avi", cv2.VideoWriter_fourcc(*'MPEG'), 30, (1080, 1920)) 
 
 
     while True:
@@ -13,8 +16,9 @@ def receive():
         if not ret:
             print('empty frame')
             continue
-
+        output.write(frame) 
         cv2.imshow('receive', frame)
+        
         if cv2.waitKey(1)&0xFF == ord('q'):
             break
 
